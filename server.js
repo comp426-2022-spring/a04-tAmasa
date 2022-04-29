@@ -13,10 +13,10 @@ app.use(express.json())
 app.use(morgan('tiny'))
 app.use(morgan('combined'))
 
-var args = require('minimist')(process.argv.slice(2))
-console.log(args)
+const args = require('minimist')(process.argv.slice(2))
 
-args["port", "debug", "log","help"]
+args["port", "debug", "log", "help"]
+console.log(args.log)
 
 const logging = (req, res, next) => {
     console.log("in here")
@@ -47,6 +47,26 @@ if (args.help || args.h) {
 if(args.log!="false" || args.log !=false){
     const accessLog = fs.createWriteStream('access.log', { flags: 'a' })
     app.use(morgan('combined', { stream: accessLog }))
+
+
+    app.use((req, res, next) => {
+        let logdata = {
+            remoteaddr: req.ip,
+            remoteuser: req.user,
+            time: Date.now(),
+            method: req.method,
+            url: req.url,
+            protocol: req.protocol,
+            httpversion: req.httpVersion,
+            status: res.statusCode,
+            referer: req.headers['referer'],
+            useragent: req.headers['user-agent']
+        }
+        const stmt = logdb.prepare("INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?,?,?,?,?,?,?,?,?,?)")
+        const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+        next()
+      })
+    
 }
 
 const port = args.port || 5555
@@ -54,14 +74,6 @@ const port = args.port || 5555
 const server = app.listen(port, () => {
     console.log('App listening on port %PORT%'.replace('%PORT%',port))
 });
-
-
-if (args.log != "false" || args.log != false) {
-    const accesslog = fs.createWriteStream('access.log', { flags: 'a' })
-    app.use(morgan('combined', {stream: accesslog}))
-} 
-
-
 
 if (args.debug || args.debug === "true") {
     app.get('/app/log/access', (req, res) => {
@@ -82,23 +94,6 @@ if (args.debug || args.debug === "true") {
 // })
 
 
-app.use((req, res, next) => {
-    let logdata = {
-        remoteaddr: req.ip,
-        remoteuser: req.user,
-        time: Date.now(),
-        method: req.method,
-        url: req.url,
-        protocol: req.protocol,
-        httpversion: req.httpVersion,
-        status: res.statusCode,
-        referer: req.headers['referer'],
-        useragent: req.headers['user-agent']
-    }
-    const stmt = logdb.prepare("INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?,?,?,?,?,?,?,?,?,?)")
-    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
-    next()
-  })
 
 app.get('/app/', (req, res) => {
     // Respond with status 200
