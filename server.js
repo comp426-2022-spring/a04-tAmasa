@@ -1,5 +1,6 @@
 const express = require("express")
 const http = require("http")
+const fs = require('fs')
 const morgan = require("morgan")
 const {coinFlip, coinFlips, countFlips, flipACoin} = require("./modules/coin.js")
 const app = express()
