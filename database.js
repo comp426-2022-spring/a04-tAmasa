@@ -1,14 +1,32 @@
-const database = require("better-sqlite3")
+const Database = require('better-sqlite3');
 
-const logdb = new database('log.db')
-const stmt = logdb.prepare(`
-SELECT name FROM sqlite_master WHERE type='table' and name='accessLog';
-`);
+const db = new Database('log.db');
+
+const stmt = db.prepare(`
+    SELECT name FROM sqlite_master WHERE type='table' and name='accessLog';`
+    );
+
 let row = stmt.get();
 
-if(row === undefined){
-    console.log("No space")
-}else{
-    console.log('Log database exists.')
+if (row == undefined) {
+    const sqlInit = `
+        CREATE TABLE accessLog ( id INTEGER PRIMARY KEY, 
+            remoteaddr TEXT,
+            remoteuser TEXT,
+            time INTEGER, 
+            method TEXT,
+            url TEXT,
+            protocol TEXT, 
+            httpversion TEXT, 
+            status INTEGER, 
+            referer TEXT, 
+            useragent TEXT);
+    `;
+
+
+    db.exec(sqlInit);
+} else {
+    console.log("Log database already exists.");
 }
-module.exports = logdb
+// Export all of the above as a module so that we can use it elsewhere.
+module.exports = db

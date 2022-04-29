@@ -4,7 +4,8 @@ const fs = require('fs')
 const morgan = require("morgan")
 const {coinFlip, coinFlips, countFlips, flipACoin} = require("./modules/coin.js")
 const app = express()
-const logdb = require('./database')
+const logdb = require('./database.js')
+const { kill } = require("process")
 
 app.use(express.urlencoded(true))
 app.use(express.json())
@@ -14,7 +15,8 @@ app.use(morgan('combined'))
 
 var args = require('minimist')(process.argv.slice(2))
 console.log(args)
-args["port"]
+
+args["port", "debug", "log","help"]
 
 const logging = (req, res, next) => {
     console.log("in here")
@@ -22,7 +24,7 @@ const logging = (req, res, next) => {
     next()
 }
 
-app.use(logging)
+// app.use(logging)
 
 const help = (`
 server.js [options]
@@ -54,15 +56,16 @@ const server = app.listen(port, () => {
 });
 
 
-if (args.log != "false" && args.log != false) {
+if (args.log != "false" || args.log != false) {
     const accesslog = fs.createWriteStream('access.log', { flags: 'a' })
     app.use(morgan('combined', {stream: accesslog}))
 } 
 
 
 
-if (args.debug) {
+if (args.debug || args.debug === "true") {
     app.get('/app/log/access', (req, res) => {
+        // console.log("hit")
         const stmt = logdb.prepare('SELECT * FROM accesslog').all();
         res.status(200).json(stmt)
         //res.writeHead(res.statusCode, {"Content-Type" : "text/json"});
