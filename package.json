@@ -4,8 +4,8 @@
   "description": "a loggin server",
   "main": "server.js",
   "scripts": {
-    "test": "node server.js --port=5555",
-    "devStart": "nodemon server.js --port=3000"
+    "test": "node server.js  --port=5555",
+    "devStart": "nodemon server.js --port=3000 > ./access.log"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/comp426-2022-spring/a04-tAmasa#readme",
   "dependencies": {
+    "better-sqlite3": "^7.5.1",
     "morgan": "^1.10.0"
   }
 }
