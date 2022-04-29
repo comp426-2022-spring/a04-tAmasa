@@ -3,8 +3,7 @@ const http = require("http")
 const morgan = require("morgan")
 const {coinFlip, coinFlips, countFlips, flipACoin} = require("./modules/coin.js")
 const app = express()
-const db = 
-
+const logdb = require('./database')
 
 app.use(express.urlencoded(true))
 app.use(express.json())
@@ -42,6 +41,11 @@ if (args.help || args.h) {
     process.exit(0)
 }
 
+if(args.log!="false"){
+    const accessLog = fs.createWriteStream('access.log', { flags: 'a' })
+    app.use(morgan('combined', { stream: accessLog }))
+}
+
 const port = args.port || 5555
 
 const server = app.listen(port, () => {
@@ -49,9 +53,48 @@ const server = app.listen(port, () => {
 });
 
 
+if (args.log != "false" && args.log != false) {
+    const accesslog = fs.createWriteStream('access.log', { flags: 'a' })
+    app.use(morgan('combined', {stream: accesslog}))
+} 
+
+
+
+if (args.debug) {
+    app.get('/app/log/access', (req, res) => {
+        const stmt = logdb.prepare('SELECT * FROM accesslog').all();
+        res.status(200).json(stmt)
+        //res.writeHead(res.statusCode, {"Content-Type" : "text/json"});
+    })
+
+    app.get('/app/error', (req, res) => {
+        throw new Error('error test successful.')
+    })
+}
+
+
 // app.use(function(req,res) {
 //     res.status(404).send('404 NOT FOUND')
 // })
+
+
+app.use((req, res, next) => {
+    let logdata = {
+        remoteaddr: req.ip,
+        remoteuser: req.user,
+        time: Date.now(),
+        method: req.method,
+        url: req.url,
+        protocol: req.protocol,
+        httpversion: req.httpVersion,
+        status: res.statusCode,
+        referer: req.headers['referer'],
+        useragent: req.headers['user-agent']
+    }
+    const stmt = logdb.prepare("INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?,?,?,?,?,?,?,?,?,?)")
+    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+    next()
+  })
 
 app.get('/app/', (req, res) => {
     // Respond with status 200
