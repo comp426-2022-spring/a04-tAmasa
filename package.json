@@ -1,0 +1,27 @@
+{
+  "name": "server_logging",
+  "version": "0.0.1",
+  "description": "a loggin server",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js  --port=5555",
+    "devStart": "nodemon server.js --port=3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/comp426-2022-spring/a04-tAmasa.git"
+  },
+  "author": "Tarun Amasa",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/comp426-2022-spring/a04-tAmasa/issues"
+  },
+  "homepage": "https://github.com/comp426-2022-spring/a04-tAmasa#readme",
+  "dependencies": {
+    "better-sqlite3": "^7.5.1",
+    "express": "^4.18.0",
+    "minimist": "^1.2.6",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.15"
+  }
+}
